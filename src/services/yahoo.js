@@ -9,6 +9,7 @@ async function getQuote(symbol) {
   if (cached) return cached;
 
   const result = await yahooFinance.quote(symbol);
+  if (!result) throw new Error(`No data returned for ${symbol}`);
   const quote = {
     symbol: result.symbol,
     name: result.shortName || result.longName || symbol,

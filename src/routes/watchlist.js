@@ -9,6 +9,12 @@ router.get('/', (req, res) => {
   res.json(stocks);
 });
 
+// GET /api/watchlist/categories — distinct categories
+router.get('/categories', (req, res) => {
+  const rows = db.prepare('SELECT DISTINCT category FROM watchlist WHERE category IS NOT NULL ORDER BY category').all();
+  res.json(rows.map((r) => r.category));
+});
+
 // POST /api/watchlist
 router.post('/', (req, res) => {
   const { symbol, name, category } = req.body;
@@ -30,6 +36,19 @@ router.post('/', (req, res) => {
     }
     throw err;
   }
+});
+
+// PUT /api/watchlist/:symbol — update stock (e.g. category)
+router.put('/:symbol', (req, res) => {
+  const { category } = req.body;
+  if (!category) {
+    return res.status(400).json({ error: 'category is required' });
+  }
+  const result = db.prepare('UPDATE watchlist SET category = ? WHERE symbol = ?').run(category, req.params.symbol);
+  if (result.changes === 0) {
+    return res.status(404).json({ error: 'Stock not found' });
+  }
+  res.json({ symbol: req.params.symbol, category });
 });
 
 // DELETE /api/watchlist/:symbol

@@ -17,6 +17,10 @@ const App = (() => {
     if (name === 'summary') {
       Summary.load();
     }
+
+    if (name === 'settings') {
+      Settings.load();
+    }
   }
 
   function init() {
@@ -26,9 +30,9 @@ const App = (() => {
     });
 
     // Initialize modules
-    Watchlist.initSearch();
     ChartView.init();
     Summary.init();
+    Settings.init();
 
     // Load default view
     switchView('watchlist');
