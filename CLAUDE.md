@@ -55,6 +55,23 @@ GET    /api/summary                # Daily summary with signals
 GET    /api/search?q=鴻海          # Yahoo Finance search (filtered to Taiwan)
 ```
 
+## Deployment
+
+Docker-based CI/CD via GitHub Actions. Push to `main` triggers build + deploy.
+
+- **Production**: `stock.megabit.tw`
+- **Image registry**: `ghcr.io/hash543/stock-tracking`
+- **Stack**: Docker Compose (app only), server's existing reverse proxy handles SSL/routing
+- **Container port**: `127.0.0.1:3917` → app:3000
+- **Server path**: `/opt/stock-tracking`
+- **GitHub Secrets required**: `SSH_USER`, `SSH_PRIVATE_KEY`, `SERVER_IP`
+
+```bash
+docker compose up -d         # Start all services
+docker compose pull app      # Pull latest image
+docker compose logs -f app   # View app logs
+```
+
 ## Key Conventions
 
 - Taiwan stock symbols use `.TW` suffix (e.g., `2317.TW` for 鴻海)

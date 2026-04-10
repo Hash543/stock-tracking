@@ -1,0 +1,15 @@
+services:
+  app:
+    image: ghcr.io/hash543/stock-tracking:latest
+    container_name: stock-tracking
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:3917:3000"
+    volumes:
+      - app-data:/app/data
+    environment:
+      - NODE_ENV=production
+      - PORT=3000
+
+volumes:
+  app-data:
