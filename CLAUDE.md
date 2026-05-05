@@ -52,6 +52,7 @@ GET    /api/quotes/:symbol         # Single quote
 GET    /api/historical/:symbol     # OHLCV + indicators (?range=1m|3m|6m|1y|2y)
 
 GET    /api/summary                # Daily summary with signals
+GET    /api/health                 # Health scores (0-100) for all watchlist stocks
 GET    /api/search?q=鴻海          # Yahoo Finance search (filtered to Taiwan)
 ```
 
@@ -63,6 +64,7 @@ Docker-based CI/CD via GitHub Actions. Push to `main` triggers build + deploy.
 - **Image registry**: `ghcr.io/hash543/stock-tracking`
 - **Stack**: Docker Compose (app only), server's existing reverse proxy handles SSL/routing
 - **Container port**: `127.0.0.1:3917` → app:3000
+- **Nginx config**: `/opt/homebrew/etc/nginx/servers/stock.conf` (source: `deploy/nginx/stock.conf`)
 - **Server path**: `/opt/stock-tracking`
 - **GitHub Secrets required**: `SSH_USER`, `SSH_PRIVATE_KEY`, `SERVER_IP`
 

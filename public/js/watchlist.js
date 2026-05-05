@@ -2,6 +2,7 @@ const Watchlist = (() => {
   let refreshTimer = null;
   let activeCategory = null;
   let allQuotes = [];
+  let healthData = {};
 
   function formatNumber(n) {
     if (n == null) return '-';
@@ -19,6 +20,22 @@ const Watchlist = (() => {
     return 'price-flat';
   }
 
+  function getHealthClass(level) {
+    if (level === '強勢') return 'health-strong';
+    if (level === '偏多') return 'health-bullish';
+    if (level === '中性') return 'health-neutral';
+    if (level === '偏空') return 'health-bearish';
+    if (level === '弱勢') return 'health-weak';
+    return '';
+  }
+
+  function renderHealthCell(symbol) {
+    const h = healthData[symbol];
+    if (!h || h.score == null) return '<td class="health-cell">-</td>';
+    const cls = getHealthClass(h.level);
+    return `<td class="health-cell"><span class="health-badge ${cls}" title="MA:${h.details.ma} RSI:${h.details.rsi} MACD:${h.details.macd} 量能:${h.details.volume} 動能:${h.details.momentum}">${h.score} <small>${h.level}</small></span></td>`;
+  }
+
   function renderRow(q) {
     const cls = getColorClass(q.change);
     const arrow = q.change > 0 ? '▲' : q.change < 0 ? '▼' : '';
@@ -26,6 +43,7 @@ const Watchlist = (() => {
       <tr class="stock-row" data-symbol="${q.symbol}">
         <td>${q.symbol.replace('.TW', '')}</td>
         <td>${q.name}</td>
+        ${renderHealthCell(q.symbol)}
         <td class="${cls}">${formatPrice(q.price)}</td>
         <td class="${cls}">${arrow} ${formatPrice(Math.abs(q.change))}</td>
         <td class="${cls}">${q.changePercent != null ? q.changePercent.toFixed(2) + '%' : '-'}</td>
@@ -67,7 +85,7 @@ const Watchlist = (() => {
       : allQuotes;
 
     if (filtered.length === 0) {
-      body.innerHTML = '<tr><td colspan="8" class="loading">沒有符合的股票</td></tr>';
+      body.innerHTML = '<tr><td colspan="9" class="loading">沒有符合的股票</td></tr>';
       renderFilterBar();
       return;
     }
@@ -77,17 +95,28 @@ const Watchlist = (() => {
     bindRowClicks();
   }
 
+  async function loadHealth() {
+    try {
+      const results = await API.get('/api/health');
+      healthData = {};
+      results.forEach((h) => { healthData[h.symbol] = h; });
+    } catch (err) {
+      console.error('Failed to load health data:', err.message);
+    }
+  }
+
   async function load() {
     const body = document.getElementById('watchlist-body');
     try {
-      allQuotes = await API.get('/api/quotes');
+      const [quotes] = await Promise.all([API.get('/api/quotes'), loadHealth()]);
+      allQuotes = quotes;
       if (allQuotes.length === 0) {
-        body.innerHTML = '<tr><td colspan="8" class="loading">自選股清單是空的，請至設定新增股票</td></tr>';
+        body.innerHTML = '<tr><td colspan="9" class="loading">自選股清單是空的，請至設定新增股票</td></tr>';
         return;
       }
       renderTable();
     } catch (err) {
-      body.innerHTML = `<tr><td colspan="8" class="loading">載入失敗: ${err.message}</td></tr>`;
+      body.innerHTML = `<tr><td colspan="9" class="loading">載入失敗: ${err.message}</td></tr>`;
     }
   }
 
